@@ -11,7 +11,7 @@ actions = []
 # create four different actions
 for i in range(0, 4):
     if i == 0:
-        actions.append(np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]))
+        actions.append(np.array([[0, 0.8, 0], [0.1, 0, 0.1], [0, 0, 0]]))
     else:
         # each action is a 90 degree rotation of the previously defined action
         current_action = actions[i - 1]
@@ -32,7 +32,7 @@ def convolve(f, g, s=1):
     for row in range(0, l - n + 1, s):
         o_dim1 += 1
         for col in range(0, w - n + 1, s):
-            if i == 0:
+            if row == 0:
                 o_dim2 += 1
 
             f_sub = f[row:row + n, col:col + n]  # get subset of F
@@ -72,6 +72,7 @@ def value_iteration(values, gamma, rs, max_iteration):
 
         max_values[0, n_columns - 1] = 1
         max_values[1, n_columns - 1] = -1
+        max_values[4, 1] = 1
 
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
@@ -83,15 +84,14 @@ def value_iteration(values, gamma, rs, max_iteration):
 
         values = padded_values
         p = optimal_policy
-        if i == max_iteration - 1:
+        if iteration == max_iteration - 1:
             values = max_values
     np.zeros((n_rows, n_columns))
 
     return values, p
 
 
-state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.1, 100)
-print(state_values)
+state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, 0, 100)
 policy_string = ""
 
 # display policy with arrows
@@ -116,4 +116,5 @@ for i in range(0, n_rows):
 
     policy_string = policy_string + "\n"
 
+print(state_values)
 print(policy_string)
