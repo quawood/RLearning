@@ -1,19 +1,31 @@
 import numpy as np
-
-n_columns = 6
-n_rows = 6
+import random
+n_columns = 20
+n_rows = 20
 
 actions = []
 
-# create four different actions
+# create eight different actions
 for i in range(0, 4):
     if i == 0:
         actions.append(np.array([[0, 0.8, 0], [0.1, 0, 0.1], [0, 0, 0]]))
     else:
         # each action is a 90 degree rotation of the previously defined action
-        current_action = actions[i - 1]
-        rotated = np.rot90(current_action)
+        previous_action = actions[i-1]
+        rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
+
+for i in range(4, 8):
+    if i == 4:
+        actions.append(np.array([[0.1, 0, 0.8], [0, 0, 0], [0, 0, 0.1]]))
+    else:
+        # each action is a 90 degree rotation of the previously defined action
+        previous_action = actions[i - 1]
+        rotated = np.rot90(previous_action)
+        actions.append(np.array(rotated))
+
+
+
 
 
 # convolution operator when performing action at a certain state/cell
@@ -67,9 +79,12 @@ def value_iteration(values, gamma, rs, max_iteration):
             max_values[greater] = a_values[greater]
             optimal_policy[greater] = (a + 1)
 
-        max_values[0, n_columns - 1] = 1
-        max_values[1, n_columns - 1] = -1
-        max_values[4, 1] = 1
+        # choose random positions for good and bad rewards
+        for k in range(0, int(round(n_rows*n_columns/8))):
+            rand_val = random.choice([-1, 1])
+            rand_row = random.randint(0, n_rows-1)
+            rand_col = random.randint(0, n_columns-1)
+            max_values[rand_row, rand_col] = rand_val
 
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
@@ -88,7 +103,7 @@ def value_iteration(values, gamma, rs, max_iteration):
     return values, p
 
 
-state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, 0, 100)
+state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.1, 1000)
 policy_string = ""
 
 # display policy with arrows
@@ -96,18 +111,26 @@ for i in range(0, n_rows):
     for j in range(0, n_columns):
         direct = policy[i, j]
         char_to_add = ""
-
-        if direct == 1:
+        if state_values[i,j] == 1:
+            char_to_add = " •"
+        elif state_values[i,j] == -1:
+            char_to_add = " o"
+        elif direct == 1:
             char_to_add = " ↑"
-
         elif direct == 2:
             char_to_add = " ←"
-
         elif direct == 3:
             char_to_add = " ↓"
-
         elif direct == 4:
             char_to_add = " →"
+        elif direct == 5:
+            char_to_add = " ↗"
+        elif direct == 6:
+            char_to_add = " ↖"
+        elif direct == 7:
+            char_to_add = " ↙"
+        elif direct == 8:
+            char_to_add = " ↘"
 
         policy_string = policy_string + char_to_add
 

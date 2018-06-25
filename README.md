@@ -13,3 +13,9 @@ The problem is as follows:
 
 This problem was solved using value iteration, which is an iterative process which uses the Belmann equation to determine the expected reward from acting optimally from a certain cell.
 Having calculated these values for each cell, the actions that produced these values were chosen to determine which action should be taken within each cell
+
+Issues/next steps:
+* Need better way to handle walls (not just replicate padding)
+* make visual outside of console
+* make visuals for evolution of cell values
+*improve upon policy decision algorithm by avoiding updating policy at every update of cell values
