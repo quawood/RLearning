@@ -1,11 +1,11 @@
 import numpy as np
 import random
-n_columns = 20
-n_rows = 20
+n_columns = 6
+n_rows = 6
 
 actions = []
 
-# create eight different actions
+# create 4 different actions
 for i in range(0, 4):
     if i == 0:
         actions.append(np.array([[0, 0.8, 0], [0.1, 0, 0.1], [0, 0, 0]]))
@@ -15,6 +15,7 @@ for i in range(0, 4):
         rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
 
+'''
 for i in range(4, 8):
     if i == 4:
         actions.append(np.array([[0.1, 0, 0.8], [0, 0, 0], [0, 0, 0.1]]))
@@ -23,10 +24,7 @@ for i in range(4, 8):
         previous_action = actions[i - 1]
         rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
-
-
-
-
+'''
 
 # convolution operator when performing action at a certain state/cell
 def convolve(f, g, s=1):
@@ -79,12 +77,9 @@ def value_iteration(values, gamma, rs, max_iteration):
             max_values[greater] = a_values[greater]
             optimal_policy[greater] = (a + 1)
 
-        # choose random positions for good and bad rewards
-        for k in range(0, int(round(n_rows*n_columns/8))):
-            rand_val = random.choice([-1, 1])
-            rand_row = random.randint(0, n_rows-1)
-            rand_col = random.randint(0, n_columns-1)
-            max_values[rand_row, rand_col] = rand_val
+        # choose positions for good and bad rewards
+            max_values[0, n_columns-1] = 1
+            max_values[1, n_columns -1] = -1
 
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
@@ -103,7 +98,7 @@ def value_iteration(values, gamma, rs, max_iteration):
     return values, p
 
 
-state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.1, 1000)
+state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.1, 100)
 policy_string = ""
 
 # display policy with arrows
@@ -111,9 +106,9 @@ for i in range(0, n_rows):
     for j in range(0, n_columns):
         direct = policy[i, j]
         char_to_add = ""
-        if state_values[i,j] == 1:
+        if state_values[i, j] == 1:
             char_to_add = " •"
-        elif state_values[i,j] == -1:
+        elif state_values[i, j] == -1:
             char_to_add = " o"
         elif direct == 1:
             char_to_add = " ↑"
