@@ -9,12 +9,12 @@ n_rows = 6
 actions = []
 
 # create four different actions
-for i in range(0,4):
+for i in range(0, 4):
     if i == 0:
         actions.append(np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]))
     else:
         # each action is a 90 degree rotation of the previously defined action
-        current_action = actions[i-1]
+        current_action = actions[i - 1]
         rotated = np.rot90(current_action)
         actions.append(np.array(rotated))
 
@@ -28,7 +28,7 @@ def convolve(f, g, s=1):
     n = g.shape[1]
 
     sums = []
-    o_dim1, o_dim2 = (0,0)  # dimensions of resulting matrix
+    o_dim1, o_dim2 = (0, 0)  # dimensions of resulting matrix
     for row in range(0, l - n + 1, s):
         o_dim1 += 1
         for col in range(0, w - n + 1, s):
@@ -44,8 +44,8 @@ def convolve(f, g, s=1):
 
 def value_iteration(values, gamma, rs, max_iteration):
     """
-    :param v: value matrix containing the values of each state/cell
-    :type v: np.ndarray
+    :param values: value matrix containing the values of each state/cell
+    :type values: np.ndarray
     :param gamma: gamma value giving the discount rate
     :type gamma: float
     :param rs: living penalty
@@ -54,7 +54,7 @@ def value_iteration(values, gamma, rs, max_iteration):
     :type max_iteration: int
     """
     values = values
-    p = np.zeros((n_rows,n_columns))
+    p = np.zeros((n_rows, n_columns))
     for iteration in range(0, max_iteration):
 
         ex_values = gamma * values + rs
@@ -68,35 +68,36 @@ def value_iteration(values, gamma, rs, max_iteration):
             # only add the values associated with the action that provide the greatest values
             greater = a_values > max_values
             max_values[greater] = a_values[greater]
-            optimal_policy[greater] = (a+1)
+            optimal_policy[greater] = (a + 1)
 
-        max_values[0, n_columns-1] = 1
-        max_values[1, n_columns-1] = -1
+        max_values[0, n_columns - 1] = 1
+        max_values[1, n_columns - 1] = -1
 
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
         padded_values[1:n_rows + 1, 1:n_columns + 1] = max_values
         padded_values[0, 1:n_columns + 1] = max_values[0, :]
-        padded_values[n_rows + 1, 1:n_columns + 1] = max_values[n_rows-1, :]
+        padded_values[n_rows + 1, 1:n_columns + 1] = max_values[n_rows - 1, :]
         padded_values[1:n_rows + 1, 0] = max_values[:, 0]
-        padded_values[1:n_rows + 1, n_columns + 1] = max_values[:, n_columns-1]
+        padded_values[1:n_rows + 1, n_columns + 1] = max_values[:, n_columns - 1]
 
         values = padded_values
         p = optimal_policy
-        if i == max_iteration-1:
+        if i == max_iteration - 1:
             values = max_values
     np.zeros((n_rows, n_columns))
 
-    return values, policy
+    return values, p
+
 
 state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.1, 100)
 print(state_values)
 policy_string = ""
 
 # display policy with arrows
-for i in range(0,n_rows):
-    for j in range(0,n_columns):
-        direct = policy[i,j]
+for i in range(0, n_rows):
+    for j in range(0, n_columns):
+        direct = policy[i, j]
         char_to_add = ""
 
         if direct == 1:
@@ -116,4 +117,3 @@ for i in range(0,n_rows):
     policy_string = policy_string + "\n"
 
 print(policy_string)
-
