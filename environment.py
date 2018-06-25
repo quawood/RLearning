@@ -3,112 +3,117 @@ import numpy as np
 
 pygame.init()
 
-grid_w = 900
-grid_h = 600
-ncolumns = 4
-nrows = 3
-cell_w = grid_w/ncolumns
-cell_h = grid_h/nrows
+n_columns = 6
+n_rows = 6
 
-gameDisplay = pygame.display.set_mode((grid_w,grid_h))
-pygame.display.set_caption('Grid world')
-clock = pygame.time.Clock()
-
-stopped = False
-
-values = np.zeros((nrows+2,ncolumns+2))
 actions = []
-gamma = 1
-r = -0.1
 
-#create four different actions
+# create four different actions
 for i in range(0,4):
     if i == 0:
-        actions.append(np.array([[0,0.8,0],[0.1,0,0.1],[0,0,0]]))
+        actions.append(np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]))
     else:
-        #each action is a 90 degree rotation of the previously defined action
-        currentaction = actions[i-1]
-        rotated = np.rot90(currentaction)
+        # each action is a 90 degree rotation of the previously defined action
+        current_action = actions[i-1]
+        rotated = np.rot90(current_action)
         actions.append(np.array(rotated))
 
 
-
-def convolve(F, G, s=1):
+# convolution operator when performing action at a certain state/cell
+def convolve(f, g, s=1):
     # F to be convoled with G with stride length s
 
     # dimensions of F and G.
-    l, w = F.shape
-    n = G.shape[1]
+    l, w = f.shape
+    n = g.shape[1]
 
     sums = []
-    o_dim1, o_dim2 = (0,0) # dimensions of resulting matrix
-    for i in range(0, l - n + 1 , s):
+    o_dim1, o_dim2 = (0,0)  # dimensions of resulting matrix
+    for row in range(0, l - n + 1, s):
         o_dim1 += 1
-        for j in range(0, w - n + 1, s):
-            if i==0:
+        for col in range(0, w - n + 1, s):
+            if i == 0:
                 o_dim2 += 1
 
-            Fsub = F[i:i + n, j:j + n]  # get subset of F
-            mult = np.sum(np.multiply(Fsub, G))
-            sums.append(mult)
+            f_sub = f[row:row + n, col:col + n]  # get subset of F
+            product = np.sum(np.multiply(f_sub, g))
+            sums.append(product)
 
     return np.array(sums).reshape((int(o_dim1), int(o_dim2)))
 
 
-def value_iteration(values,gamma,r,max_iteration):
+def value_iteration(values, gamma, rs, max_iteration):
+    """
+    :param v: value matrix containing the values of each state/cell
+    :type v: np.ndarray
+    :param gamma: gamma value giving the discount rate
+    :type gamma: float
+    :param rs: living penalty
+    :type rs: float
+    :param max_iteration: the maximum iterations of the value iteration algorithm
+    :type max_iteration: int
+    """
     values = values
-    for i in range(0,max_iteration):
-        exvalues = gamma * values + r
-        maxvalues = convolve(exvalues, actions[0])
-        for a in range(1, len(actions)):
-            ivals = convolve(exvalues, actions[a])
+    p = np.zeros((n_rows,n_columns))
+    for iteration in range(0, max_iteration):
+
+        ex_values = gamma * values + rs
+        max_values = np.zeros((n_rows, n_columns))
+        optimal_policy = np.zeros((n_rows, n_columns))
+
+        # loop through actions available
+        for a in range(0, len(actions)):
+            a_values = convolve(ex_values, actions[a])
 
             # only add the values associated with the action that provide the greatest values
-            greater = ivals >= maxvalues
-            maxvalues = ivals * greater + (greater == 0) * (maxvalues)
+            greater = a_values > max_values
+            max_values[greater] = a_values[greater]
+            optimal_policy[greater] = (a+1)
 
-        padded_values = np.zeros((nrows + 2, ncolumns + 2))
+        max_values[0, n_columns-1] = 1
+        max_values[1, n_columns-1] = -1
 
-        maxvalues[0, ncolumns-1] = 1
-        maxvalues[1, ncolumns-1] = -1
         # re-pad the values array
-        padded_values[1:nrows + 1, 1:ncolumns + 1] = maxvalues
-        padded_values[0, 1:ncolumns + 1] = maxvalues[0, :]
-        padded_values[nrows + 1, 1:ncolumns + 1] = maxvalues[nrows-1, :]
-        padded_values[1:nrows + 1, 0] = maxvalues[:, 0]
-        padded_values[1:nrows + 1, ncolumns + 1] = maxvalues[:, ncolumns-1]
+        padded_values = np.zeros((n_rows + 2, n_columns + 2))
+        padded_values[1:n_rows + 1, 1:n_columns + 1] = max_values
+        padded_values[0, 1:n_columns + 1] = max_values[0, :]
+        padded_values[n_rows + 1, 1:n_columns + 1] = max_values[n_rows-1, :]
+        padded_values[1:n_rows + 1, 0] = max_values[:, 0]
+        padded_values[1:n_rows + 1, n_columns + 1] = max_values[:, n_columns-1]
 
         values = padded_values
+        p = optimal_policy
         if i == max_iteration-1:
-            values = maxvalues
+            values = max_values
+    np.zeros((n_rows, n_columns))
 
+    return values, policy
 
-    return values
-
-
-
-
-state_values = value_iteration(values,gamma,r,10000)
+state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.1, 100)
 print(state_values)
+policy_string = ""
 
+# display policy with arrows
+for i in range(0,n_rows):
+    for j in range(0,n_columns):
+        direct = policy[i,j]
+        char_to_add = ""
 
-def draw(canvas):
-    canvas.fill((255,255,255))
+        if direct == 1:
+            char_to_add = " ↑"
 
-    count = 0
-    for i in range(0, nrows):
-        for j in range(0, ncolumns):
+        elif direct == 2:
+            char_to_add = " ←"
 
-            pygame.draw.rect(canvas, (15,100,90), (j*cell_w, i*cell_h, cell_w, cell_h),2)
-            count = count + 1
+        elif direct == 3:
+            char_to_add = " ↓"
 
+        elif direct == 4:
+            char_to_add = " →"
 
+        policy_string = policy_string + char_to_add
 
-while not stopped:
-    draw(gameDisplay)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            stopped = True
+    policy_string = policy_string + "\n"
 
-    pygame.display.update()
-    clock.tick(60)
+print(policy_string)
+
