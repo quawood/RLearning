@@ -1,8 +1,8 @@
 import numpy as np
 
 
-n_columns = 4
-n_rows = 3
+n_columns = 6
+n_rows = 6
 
 
 actions = []
@@ -17,7 +17,7 @@ for i in range(0, 4):
         actions.append(np.array(rotated))
 
 # code to add 4 diagonal actions
-'''
+
 for i in range(4, 8):
     if i == 4:
         actions.append(np.array([[0.1, 0, 0.8], [0, 0, 0], [0, 0, 0.1]]))
@@ -26,11 +26,11 @@ for i in range(4, 8):
         previous_action = actions[i - 1]
         rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
-'''
+
 
 def is_wall(i1: int, i2: int) -> bool:
     wall = False
-    if i1 == 0 or i1 == n_rows + 1 or i2 == 0 or i2 == n_columns + 1 or (i1,i2) == (2,2):
+    if i1 == 0 or i1 == n_rows + 1 or i2 == 0 or i2 == n_columns + 1 or (i1, i2) == (2, 2):
         wall = True
 
     return wall
@@ -116,7 +116,6 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
         max_values[0, n_columns - 1] = 1
         max_values[1, n_columns - 1] = -1
 
-
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
         padded_values[1:n_rows + 1, 1:n_columns + 1] = max_values
@@ -139,7 +138,9 @@ for i in range(0, n_rows):
         direct = policy[i, j]
         char_to_add = ""
         print()
-        if state_values[i, j] == 1 and is_exit(i, j):
+        if is_wall(i+1,j+1):
+            char_to_add = " ■"
+        elif state_values[i, j] == 1 and is_exit(i, j):
             char_to_add = " •"
         elif state_values[i, j] == -1 and is_exit(i, j):
             char_to_add = " o"
