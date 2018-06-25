@@ -1,11 +1,10 @@
 import numpy as np
-import random
 
-n_columns = 6
-n_rows = 6
 
-good_pos = (0, n_columns-1)
-bad_pos = (1, n_columns-1)
+n_columns = 4
+n_rows = 3
+
+
 actions = []
 # create 4 different actions
 for i in range(0, 4):
@@ -13,10 +12,9 @@ for i in range(0, 4):
         actions.append(np.array([[0, 0.8, 0], [0.1, 0, 0.1], [0, 0, 0]]))
     else:
         # each action is a 90 degree rotation of the previously defined action
-        previous_action = actions[i-1]
+        previous_action = actions[i - 1]
         rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
-
 
 # code to add 4 diagonal actions
 '''
@@ -28,13 +26,11 @@ for i in range(4, 8):
         previous_action = actions[i - 1]
         rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
-
 '''
-
 
 def is_wall(i1: int, i2: int) -> bool:
     wall = False
-    if i1 == 0 or i1 == n_rows+1 or i2 == 0 or i2 == n_columns+1:
+    if i1 == 0 or i1 == n_rows + 1 or i2 == 0 or i2 == n_columns + 1 or (i1,i2) == (2,2):
         wall = True
 
     return wall
@@ -42,7 +38,7 @@ def is_wall(i1: int, i2: int) -> bool:
 
 def is_exit(i1: int, i2: int) -> bool:
     sink = False
-    states = [good_pos, bad_pos]
+    states = [(0, n_columns - 1), (1, n_columns - 1)]
     for s in range(0, len(states)):
         if (i1, i2) == states[s]:
             sink = True
@@ -79,7 +75,6 @@ def convolve(f: np.ndarray, a: int, s=1) -> np.ndarray:
                 for r in range(row, row + n):
                     for c in range(col, col + n):
                         if is_wall(r, c):
-
                             temp_g[center] += g[r - row, c - col]
                             temp_g[r - row, c - col] = 0
 
@@ -110,7 +105,6 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
 
         # loop through actions available
         for a in range(1, len(actions)):
-
             a_values = convolve(ex_values, a)
 
             # only add the values associated with the action that provide the greatest values
@@ -119,8 +113,9 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
             optimal_policy[greater] = (a + 1)
 
         # choose positions for good and bad rewards
-        max_values[0, m] = 1
-        max_values[bad_pos] = -1
+        max_values[0, n_columns - 1] = 1
+        max_values[1, n_columns - 1] = -1
+
 
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
@@ -135,7 +130,7 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
     return values, p
 
 
-state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, 0, 1000)
+state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.01, 100)
 policy_string = ""
 
 # display policy with arrows
@@ -143,6 +138,7 @@ for i in range(0, n_rows):
     for j in range(0, n_columns):
         direct = policy[i, j]
         char_to_add = ""
+        print()
         if state_values[i, j] == 1 and is_exit(i, j):
             char_to_add = " •"
         elif state_values[i, j] == -1 and is_exit(i, j):
