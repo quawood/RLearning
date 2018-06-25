@@ -65,15 +65,15 @@ def value_iteration(values, gamma, rs, max_iteration):
     for iteration in range(0, max_iteration):
 
         ex_values = gamma * values + rs
-        max_values = np.zeros((n_rows, n_columns))
-        optimal_policy = np.zeros((n_rows, n_columns))
+        max_values = convolve(ex_values,actions[0])
+        optimal_policy = np.ones((n_rows, n_columns))
 
         # loop through actions available
-        for a in range(0, len(actions)):
+        for a in range(1, len(actions)):
             a_values = convolve(ex_values, actions[a])
 
             # only add the values associated with the action that provide the greatest values
-            greater = a_values > max_values
+            greater = a_values >= max_values
             max_values[greater] = a_values[greater]
             optimal_policy[greater] = (a + 1)
 
