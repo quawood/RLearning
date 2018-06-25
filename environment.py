@@ -1,10 +1,10 @@
 import numpy as np
-import random
+# import random
+
 n_columns = 6
 n_rows = 6
 
 actions = []
-
 # create 4 different actions
 for i in range(0, 4):
     if i == 0:
@@ -15,6 +15,8 @@ for i in range(0, 4):
         rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
 
+
+# code to add 4 diagonal actions
 '''
 for i in range(4, 8):
     if i == 4:
@@ -24,13 +26,34 @@ for i in range(4, 8):
         previous_action = actions[i - 1]
         rotated = np.rot90(previous_action)
         actions.append(np.array(rotated))
+
 '''
 
+
+def is_wall(i1: int, i2: int) -> bool:
+    wall = False
+    if i1 == 0 or i1 == n_rows+1 or i2 == 0 or i2 == n_columns+1:
+        wall = True
+
+    return wall
+
+
+def is_exit(i1: int, i2: int) -> bool:
+    sink = False
+    states = [(0, n_columns), (1, n_columns)]
+    for s in range(0, len(states)):
+        if (i1, i2) == states[s]:
+            sink = True
+
+    return sink
+
+
 # convolution operator when performing action at a certain state/cell
-def convolve(f, g, s=1):
+def convolve(f: np.ndarray, a: int, s=1) -> np.ndarray:
     # F to be convoled with G with stride length s
 
     # dimensions of F and G.
+    g = actions[a]
     l, w = f.shape
     n = g.shape[1]
 
@@ -39,17 +62,32 @@ def convolve(f, g, s=1):
     for row in range(0, l - n + 1, s):
         o_dim1 += 1
         for col in range(0, w - n + 1, s):
+            temp_g = g.copy()
+
             if row == 0:
                 o_dim2 += 1
 
             f_sub = f[row:row + n, col:col + n]  # get subset of F
-            product = np.sum(np.multiply(f_sub, g))
+
+            center = (int((n - 1) / 2), int((n - 1) / 2))
+            # check if action is about to be performed to a wall or in exit state and change the action accordingly
+            if is_exit(row + center[0], row + center[1]):
+                temp_g = np.zeros((n, n))
+            else:
+                for r in range(row, row + n):
+                    for c in range(col, col + n):
+                        if is_wall(r, c):
+
+                            temp_g[center] += g[r - row, c - col]
+                            temp_g[r - row, c - col] = 0
+
+            product = np.sum(np.multiply(f_sub, temp_g))
             sums.append(product)
 
     return np.array(sums).reshape((int(o_dim1), int(o_dim2)))
 
 
-def value_iteration(values, gamma, rs, max_iteration):
+def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: int) -> (np.ndarray, np.ndarray):
     """
     :param values: value matrix containing the values of each state/cell
     :type values: np.ndarray
@@ -65,12 +103,13 @@ def value_iteration(values, gamma, rs, max_iteration):
     for iteration in range(0, max_iteration):
 
         ex_values = gamma * values + rs
-        max_values = convolve(ex_values,actions[0])
+        max_values = convolve(ex_values, 0)
         optimal_policy = np.ones((n_rows, n_columns))
 
         # loop through actions available
         for a in range(1, len(actions)):
-            a_values = convolve(ex_values, actions[a])
+
+            a_values = convolve(ex_values, a)
 
             # only add the values associated with the action that provide the greatest values
             greater = a_values >= max_values
@@ -78,16 +117,12 @@ def value_iteration(values, gamma, rs, max_iteration):
             optimal_policy[greater] = (a + 1)
 
         # choose positions for good and bad rewards
-            max_values[0, n_columns-1] = 1
-            max_values[1, n_columns -1] = -1
+            max_values[0, n_columns - 1] = 1
+            max_values[1, n_columns - 1] = -1
 
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
         padded_values[1:n_rows + 1, 1:n_columns + 1] = max_values
-        padded_values[0, 1:n_columns + 1] = max_values[0, :]
-        padded_values[n_rows + 1, 1:n_columns + 1] = max_values[n_rows - 1, :]
-        padded_values[1:n_rows + 1, 0] = max_values[:, 0]
-        padded_values[1:n_rows + 1, n_columns + 1] = max_values[:, n_columns - 1]
 
         values = padded_values
         p = optimal_policy
@@ -127,9 +162,9 @@ for i in range(0, n_rows):
         elif direct == 8:
             char_to_add = " ↘"
 
-        policy_string = policy_string + char_to_add
+        policy_string += char_to_add
 
-    policy_string = policy_string + "\n"
+    policy_string += "\n"
 
 print(state_values)
 print(policy_string)
