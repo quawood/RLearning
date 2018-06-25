@@ -1,9 +1,11 @@
 import numpy as np
-# import random
+import random
 
 n_columns = 6
 n_rows = 6
 
+good_pos = (0, n_columns-1)
+bad_pos = (1, n_columns-1)
 actions = []
 # create 4 different actions
 for i in range(0, 4):
@@ -40,7 +42,7 @@ def is_wall(i1: int, i2: int) -> bool:
 
 def is_exit(i1: int, i2: int) -> bool:
     sink = False
-    states = [(0, n_columns), (1, n_columns)]
+    states = [good_pos, bad_pos]
     for s in range(0, len(states)):
         if (i1, i2) == states[s]:
             sink = True
@@ -117,8 +119,8 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
             optimal_policy[greater] = (a + 1)
 
         # choose positions for good and bad rewards
-            max_values[0, n_columns - 1] = 1
-            max_values[1, n_columns - 1] = -1
+        max_values[0, m] = 1
+        max_values[bad_pos] = -1
 
         # re-pad the values array
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
@@ -133,7 +135,7 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
     return values, p
 
 
-state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.1, 100)
+state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, 0, 1000)
 policy_string = ""
 
 # display policy with arrows
@@ -141,9 +143,9 @@ for i in range(0, n_rows):
     for j in range(0, n_columns):
         direct = policy[i, j]
         char_to_add = ""
-        if state_values[i, j] == 1:
+        if state_values[i, j] == 1 and is_exit(i, j):
             char_to_add = " •"
-        elif state_values[i, j] == -1:
+        elif state_values[i, j] == -1 and is_exit(i, j):
             char_to_add = " o"
         elif direct == 1:
             char_to_add = " ↑"
