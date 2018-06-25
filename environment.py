@@ -1,7 +1,4 @@
-import pygame
 import numpy as np
-
-pygame.init()
 
 n_columns = 6
 n_rows = 6
