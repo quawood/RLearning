@@ -3,6 +3,8 @@ import GridWorld as Gw
 
 # create a grid world
 grid_world = Gw.GridWorld(20, 20, 3, 3, 5)
+
+# perform value iteration to decide upon best policy
 grid_world.value_iteration(1, -0.1, 1000)
 state_values, policy = grid_world.values, grid_world.policy
 
@@ -16,9 +18,9 @@ for i in range(0, grid_world.height):
         if grid_world.is_wall(i + 1, j + 1):
             char_to_add = " ■"
         elif state_values[i, j] == 1 and grid_world.is_exit(i, j):
-            char_to_add = " •"
+            char_to_add = " ⬤"
         elif state_values[i, j] == -1 and grid_world.is_exit(i, j):
-            char_to_add = " o"
+            char_to_add = " ◯"
         elif direct == 1:
             char_to_add = " ↑"
         elif direct == 2:
