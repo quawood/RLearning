@@ -5,7 +5,7 @@ import MDP_helper as Helper
 
 class GridWorld:
 
-    def __init__(self, width: int, height: int, good_n: int, bad_n: int, wall_n: int):
+    def __init__(self, height: int, width: int, good_n: int, bad_n: int, wall_n: int):
         self.width = width
         self.height = height
         self.wall_n = wall_n
@@ -16,6 +16,7 @@ class GridWorld:
         self.actions = Helper.def_actions()
 
         self.values = np.zeros((height + 2, width + 2))
+        self.prev_values = np.zeros((height + 2, width + 2))
         self.policy = np.zeros((height, width))
 
         for pg in range(0, good_n):
@@ -48,12 +49,15 @@ class GridWorld:
         return wall
 
     # convolution operator when performing action at a certain state/cell
-    def convolve(self, f: np.ndarray, g: np.ndarray, s=1) -> np.ndarray:
+    def convolve(self, f: np.ndarray, g, s=1) -> np.ndarray:
         # F to be convoled with G with stride length s
 
         # dimensions of F and G.
         l, w = f.shape
-        n = g.shape[1]
+        n = self.actions[0].shape[0]
+        g_is_policy = False
+        if g.shape == (self.height, self.width):
+            g_is_policy = True
 
         sums = []
         o_dim1, o_dim2 = (0, 0)  # dimensions of resulting matrix
@@ -61,6 +65,11 @@ class GridWorld:
             o_dim1 += 1
             for col in range(0, w - n + 1, s):
                 temp_g = g.copy()
+
+                if g_is_policy:
+                    index = int(g[row, col])
+                    temp_g = self.actions[index].copy()
+
                 if row == 0:
                     o_dim2 += 1
 
@@ -74,7 +83,7 @@ class GridWorld:
                     for r in range(row, row + n):
                         for c in range(col, col + n):
                             if self.is_wall(r, c):
-                                temp_g[center] += g[r - row, c - col]
+                                temp_g[center] += temp_g[r - row, c - col]
                                 temp_g[r - row, c - col] = 0
 
                 product = np.sum(np.multiply(f_sub, temp_g))
@@ -82,92 +91,81 @@ class GridWorld:
 
         return np.array(sums).reshape((int(o_dim1), int(o_dim2)))
 
-    def value_iteration(self, actions, gamma: float, rs: float, max_iteration: int):
-
-        values = self.values
+    def value_iteration(self, gamma, rs, max_iteration):
         p = np.zeros((self.height, self.width))
         iterating = True
         count = 0
 
         while iterating and count < max_iteration:
-            ex_values = gamma * values + rs
-            max_values = self.convolve(ex_values, actions[0])
+            self.prev_values = self.values.copy()
+            self.update_values(self.actions, gamma, rs)
 
-            # loop through actions available
-            if len(actions) > 1:
-                for a in range(1, len(self.actions)):
-                    a_values = self.convolve(ex_values, actions[a])
-
-                    # only add the values associated with the action that provide the greatest values
-                    greater = a_values >= max_values
-                    max_values[greater] = a_values[greater]
-
-            # choose positions for good and bad rewards
-            for g in range(0, len(self.good_p)):
-                max_values[self.good_p[g][0], self.good_p[g][1]] = 1
-            for g in range(0, len(self.bad_p)):
-                max_values[self.bad_p[g][0], self.bad_p[g][1]] = -1
-
-                # re-pad the values array
-
-            padded_values = np.zeros((self.height + 2, self.width + 2))
-            padded_values[1:self.height + 1, 1:self.width + 1] = max_values
-
-            if np.amax(np.absolute(padded_values - values)) < 0.01 or count >= max_iteration - 1:
-                values = padded_values
+            if np.amax(np.absolute(self.prev_values - self.values)) < 0.001 or count >= max_iteration - 1:
                 iterating = False
-
-                optimal_policy = np.ones((self.height, self.width))
-
                 # loop through actions available
-                if len(actions) > 1:
-                    for a in range(1, len(self.actions)):
-                        a_values = self.convolve(ex_values, actions[a])
-
-                        # only add the values associated with the action that provide the greatest values
-                        greater = a_values >= max_values
-                        max_values[greater] = a_values[greater]
-                        optimal_policy[greater] = (a + 1)
-
-                p = optimal_policy
+                p = self.extract_policy(gamma, rs)
 
             else:
-                values = padded_values
                 iterating = True
                 count += 1
 
-        self.values = values
         self.policy = p
 
-    def policy_iteration(self, gamma: float, rs: float, max_iter: int, value_test: int):
+    def policy_iteration(self, gamma, rs, max_iter, value_test):
         iterating = True
         count = 0
         p = np.zeros(self.policy.shape)
 
         while iterating:
-            current_policy = self.policy
-            self.value_iteration([self.actions[0]], gamma, rs, value_test)
+            current_policy = p.copy()
+            for test in range(0, value_test):
+                self.prev_values = self.values.copy()
+                self.update_values([p], gamma, rs)
 
-            ex_values = gamma * self.values + rs
-            max_values = self.convolve(ex_values, self.actions[0])
-            optimal_policy = np.ones((self.height, self.width))
-
-            # loop through actions available
-            for a in range(1, len(self.actions)):
-                a_values = self.convolve(ex_values, self.actions[a])
-
-                # only add the values associated with the action that provide the greatest values
-                greater = a_values >= max_values
-                max_values[greater] = a_values[greater]
-                optimal_policy[greater] = (a + 1)
-
-            p = optimal_policy
-
-            if p.all() == current_policy.all() or count == max_iter - 1:
+            p = self.extract_policy(gamma, rs)
+            if (p == current_policy).all() or count == max_iter - 1:
+                
                 iterating = False
+
             count += 1
 
         self.policy = p
 
+    def extract_policy(self, gamma, rs):
+        ex_values = gamma * self.prev_values + rs
+        max_values = self.convolve(ex_values, self.actions[0])
+        optimal_policy = np.zeros((self.height, self.width))
 
+        for a in range(1, len(self.actions)):
+            a_values = self.convolve(ex_values, self.actions[a])
 
+            # only add the values associated with the action that provide the greatest values
+            greater = a_values >= max_values
+            max_values[greater] = a_values[greater]
+            optimal_policy[greater] = (a)
+
+        return optimal_policy
+
+    def update_values(self, actions, gamma, rs):
+        ex_values = gamma * self.prev_values + rs
+        max_values = self.convolve(ex_values, actions[0])
+
+        # loop through actions available and update values accordingly
+        if len(actions) > 1:
+            for a in range(1, len(actions)):
+                a_values = self.convolve(ex_values, actions[a])
+                # only add the values associated with the action that provide the greatest values
+                greater = a_values >= max_values
+                max_values[greater] = a_values[greater]
+
+        # choose positions for good and bad rewards
+        for g in range(0, len(self.good_p)):
+            max_values[self.good_p[g][0], self.good_p[g][1]] = 1
+        for g in range(0, len(self.bad_p)):
+            max_values[self.bad_p[g][0], self.bad_p[g][1]] = -1
+
+            # re-pad the values array
+
+        padded_values = np.zeros((self.height + 2, self.width + 2))
+        padded_values[1:self.height + 1, 1:self.width + 1] = max_values
+        self.values = padded_values
