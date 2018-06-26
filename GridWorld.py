@@ -124,7 +124,7 @@ class GridWorld:
 
             p = self.extract_policy(gamma, rs)
             if (p == current_policy).all() or count == max_iter - 1:
-                
+
                 iterating = False
 
             count += 1
