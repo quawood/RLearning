@@ -1,8 +1,9 @@
 import numpy as np
+#import pygame
 
+n_rows = 3
+n_columns = 3
 
-n_columns = 6
-n_rows = 6
 
 
 actions = []
@@ -97,7 +98,9 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
     """
     values = values
     p = np.zeros((n_rows, n_columns))
-    for iteration in range(0, max_iteration):
+    iterating = True
+    count = 0
+    while iterating and count < max_iteration:
 
         ex_values = gamma * values + rs
         max_values = convolve(ex_values, 0)
@@ -120,16 +123,22 @@ def value_iteration(values: np.ndarray, gamma: float, rs: float, max_iteration: 
         padded_values = np.zeros((n_rows + 2, n_columns + 2))
         padded_values[1:n_rows + 1, 1:n_columns + 1] = max_values
 
-        values = padded_values
-        p = optimal_policy
-        if iteration == max_iteration - 1:
+        if np.amax(np.absolute(padded_values-values)) < 0.01 or count == max_iteration - 1:
             values = max_values
-    np.zeros((n_rows, n_columns))
+            iterating = False
 
+        else:
+            values = padded_values
+            p = optimal_policy
+            iterating = True
+            count += 1
+
+    np.zeros((n_rows, n_columns))
+    print(count)
     return values, p
 
 
-state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.01, 100)
+state_values, policy = value_iteration(np.zeros((n_rows + 2, n_columns + 2)), 1, -0.01, 500)
 policy_string = ""
 
 # display policy with arrows
@@ -138,7 +147,7 @@ for i in range(0, n_rows):
         direct = policy[i, j]
         char_to_add = ""
         print()
-        if is_wall(i+1,j+1):
+        if is_wall(i + 1, j + 1):
             char_to_add = " ■"
         elif state_values[i, j] == 1 and is_exit(i, j):
             char_to_add = " •"
@@ -167,3 +176,33 @@ for i in range(0, n_rows):
 
 print(state_values)
 print(policy_string)
+
+'''
+pygame.init()
+
+display_width = n_columns*100
+display_height = n_rows*100
+
+cell_w = display_width/n_columns
+cell_h = display_height/n_rows
+
+game_display = pygame.display.set_mode((display_width, display_height))
+
+running = True
+
+clock = pygame.time.Clock()
+
+
+def draw(canvas):
+    canvas.fill((234, 236, 239))
+    for row in range(0, n_rows):
+        for col in range(0, n_columns):
+            pygame.draw.rect(canvas, (0, 0, 0), (col * cell_w, row * cell_h, cell_w, cell_h), 2)
+
+
+while running:
+    draw(game_display)
+
+    pygame.display.update()
+    clock.tick(60)
+'''
