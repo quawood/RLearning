@@ -82,15 +82,73 @@ class GridWorld:
 
         return np.array(sums).reshape((int(o_dim1), int(o_dim2)))
 
-    def value_iteration(self, gamma: float, rs: float, max_iteration: int) -> (np.ndarray, np.ndarray):
+    def value_iteration(self, actions, gamma: float, rs: float, max_iteration: int):
 
         values = self.values
         p = np.zeros((self.height, self.width))
         iterating = True
         count = 0
-        while iterating and count < max_iteration:
 
+        while iterating and count < max_iteration:
             ex_values = gamma * values + rs
+            max_values = self.convolve(ex_values, actions[0])
+
+            # loop through actions available
+            if len(actions) > 1:
+                for a in range(1, len(self.actions)):
+                    a_values = self.convolve(ex_values, actions[a])
+
+                    # only add the values associated with the action that provide the greatest values
+                    greater = a_values >= max_values
+                    max_values[greater] = a_values[greater]
+
+            # choose positions for good and bad rewards
+            for g in range(0, len(self.good_p)):
+                max_values[self.good_p[g][0], self.good_p[g][1]] = 1
+            for g in range(0, len(self.bad_p)):
+                max_values[self.bad_p[g][0], self.bad_p[g][1]] = -1
+
+                # re-pad the values array
+
+            padded_values = np.zeros((self.height + 2, self.width + 2))
+            padded_values[1:self.height + 1, 1:self.width + 1] = max_values
+
+            if np.amax(np.absolute(padded_values - values)) < 0.01 or count >= max_iteration - 1:
+                values = padded_values
+                iterating = False
+
+                optimal_policy = np.ones((self.height, self.width))
+
+                # loop through actions available
+                if len(actions) > 1:
+                    for a in range(1, len(self.actions)):
+                        a_values = self.convolve(ex_values, actions[a])
+
+                        # only add the values associated with the action that provide the greatest values
+                        greater = a_values >= max_values
+                        max_values[greater] = a_values[greater]
+                        optimal_policy[greater] = (a + 1)
+
+                p = optimal_policy
+
+            else:
+                values = padded_values
+                iterating = True
+                count += 1
+
+        self.values = values
+        self.policy = p
+
+    def policy_iteration(self, gamma: float, rs: float, max_iter: int, value_test: int):
+        iterating = True
+        count = 0
+        p = np.zeros(self.policy.shape)
+
+        while iterating:
+            current_policy = self.policy
+            self.value_iteration([self.actions[0]], gamma, rs, value_test)
+
+            ex_values = gamma * self.values + rs
             max_values = self.convolve(ex_values, self.actions[0])
             optimal_policy = np.ones((self.height, self.width))
 
@@ -103,26 +161,13 @@ class GridWorld:
                 max_values[greater] = a_values[greater]
                 optimal_policy[greater] = (a + 1)
 
-                # choose positions for good and bad rewards
-            for g in range(0, len(self.good_p)):
-                max_values[self.good_p[g][0], self.good_p[g][1]] = 1
-            for g in range(0, len(self.bad_p)):
-                max_values[self.bad_p[g][0], self.bad_p[g][1]] = -1
+            p = optimal_policy
 
-                # re-pad the values array
-            padded_values = np.zeros((self.height + 2, self.width + 2))
-            padded_values[1:self.height + 1, 1:self.width + 1] = max_values
-
-            if np.amax(np.absolute(padded_values - values)) < 0.01 or count == max_iteration - 1:
-                values = max_values
+            if p.all() == current_policy.all() or count == max_iter - 1:
                 iterating = False
+            count += 1
 
-            else:
-                values = padded_values
-                p = optimal_policy
-                iterating = True
-                count += 1
-
-        print(count)
-        self.values = values
         self.policy = p
+
+
+
