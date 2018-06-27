@@ -96,7 +96,7 @@ class GridWorld:
         return np.array(sums).reshape((int(o_dim1), int(o_dim2)))
 
     def value_iteration(self, gamma, rs, max_iteration):
-        p = np.zeros((self.height, self.width))
+        p = self.policy.copy()
         iterating = True
         count = 0
 
@@ -119,7 +119,7 @@ class GridWorld:
     def policy_iteration(self, gamma, rs, max_iter, value_test):
         iterating = True
         count = 0
-        p = np.zeros(self.policy.shape)
+        p = self.policy.copy()
 
         while iterating:
             current_policy = p.copy()
@@ -136,7 +136,6 @@ class GridWorld:
 
         self.policy = p
         self.count = count*value_test
-
 
     def extract_policy(self, gamma, rs):
         ex_values = gamma * self.prev_values + rs

@@ -4,8 +4,8 @@ import cell
 
 
 # value iteration
-width = 11
-height = 11
+width = 50
+height = 50
 gamma = 1
 rs = -0.01
 
@@ -15,6 +15,7 @@ world_w = 500
 world_h = 500
 cell_w = world_w/width
 cell_h = world_h/height
+runs = 0
 
 font = pygame.font.Font("Arrows.ttf", int(min([cell_w, cell_h])))
 gameDisplay = pygame.display.set_mode((world_w, world_h + 125))
@@ -72,7 +73,7 @@ def draw(canvas):
             pygame.draw.rect(canvas, objects[ob].color, objects[ob].rect, 1)
 
 
-def perform_alg():
+def perform_alg(grid=None):
     wall_pos = []
     good_pos = []
     bad_pos = []
@@ -88,6 +89,12 @@ def perform_alg():
 
     # create a grid world
     grid_world = Gw.GridWorld(height, width, good_pos, bad_pos, wall_pos)
+
+    # if a change is made in environment, give the values and policies to new state to speed up comp.
+    if grid is not None:
+        grid_world.values = grid.values
+        grid_world.policy = grid.policy
+
     grid_world.policy_iteration(gamma, rs, 1000, 4)
     state_values, policy = grid_world.values[1:height + 1, 1:width + 1], grid_world.policy
 
@@ -122,6 +129,7 @@ def perform_alg():
             cells[i][j].label = font.render(char_to_add, 1, (0, 0, 0))
 
     print(grid_world.count)
+    return grid_world
 
 
 def clear():
@@ -181,9 +189,15 @@ while not stopped:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                perform_alg()
+                if runs == 0:
+                    grid_w = perform_alg()
+                else:
+                    grid_w = perform_alg(grid_w)
+
+                runs += 1
             elif event.key == pygame.K_c:
                 clear()
+                grid_w = None
             elif event.key == pygame.K_d:
                 d_pressed = True
 
