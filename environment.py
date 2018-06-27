@@ -4,12 +4,13 @@ import cell
 
 
 # value iteration
-width = 50
-height = 50
-gamma = 0.1
+width = 10
+height = 10
+gamma = 1
 rs = -0.01
 value_tests = 4
 
+# set up game
 pygame.init()
 
 world_w = 500
@@ -45,7 +46,6 @@ for row in range(0, height):
         new_row.append(g_cell)
 
     cells.append(new_row)
-
 
 stopped = False
 d_pressed = False
@@ -165,6 +165,7 @@ def check(act, rect_pos):
                     return a
 
     return a
+
 
 while not stopped:
     draw(gameDisplay)
