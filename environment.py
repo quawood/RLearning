@@ -4,8 +4,72 @@ import cell
 
 
 # value iteration
-width = 10
-height = 10
+width = 11
+height = 11
+gamma = 1
+rs = -0.01
+
+pygame.init()
+
+world_w = 500
+world_h = 500
+cell_w = world_w/width
+cell_h = world_h/height
+
+font = pygame.font.Font("Arrows.ttf", int(min([cell_w, cell_h])))
+gameDisplay = pygame.display.set_mode((world_w, world_h + 125))
+pygame.display.set_caption('Grid world')
+clock = pygame.time.Clock()
+
+
+active = [0, 0, 0]
+objects = []
+
+wall_check = cell.Spot(pygame.Rect(20, world_h + 10, 20, 20))
+good_check = cell.Spot(pygame.Rect(20, world_h + 40, 20, 20), (119, 219, 41))
+bad_check = cell.Spot(pygame.Rect(20, world_h + 70, 20, 20), (212, 58, 58))
+cells = []
+cell_color = (220, 220, 220)
+objects.append(wall_check)
+objects.append(good_check)
+objects.append(bad_check)
+
+# create a bunch of cells of the grid world
+for row in range(0, height):
+    new_row = []
+    for col in range(0, width):
+        g_cell = cell.Spot(pygame.Rect(col * cell_w, row * cell_h, cell_w, cell_h), cell_color)
+        g_cell.filled = False
+        new_row.append(g_cell)
+
+    cells.append(new_row)
+
+
+stopped = False
+d_pressed = False
+drag = False
+
+
+def draw(canvas):
+    canvas.fill((255, 255, 255))
+    count = 0
+    for i in range(0, len(cells)):
+        for j in range(0, len(cells[i])):
+            current_cell = cells[i][j]
+
+            if current_cell.filled:
+                pygame.draw.rect(canvas, current_cell.color, current_cell.rect)
+            else:
+                pygame.draw.rect(canvas, cell_color, current_cell.rect, 1)
+
+            canvas.blit(current_cell.label, (current_cell.rect.left, current_cell.rect.top))
+            count += 1
+
+    for ob in range(0, len(objects)):
+        if objects[ob].filled and active[ob] == 1:
+            pygame.draw.rect(canvas, objects[ob].color, objects[ob].rect)
+        else:
+            pygame.draw.rect(canvas, objects[ob].color, objects[ob].rect, 1)
 
 
 def perform_alg():
@@ -24,7 +88,7 @@ def perform_alg():
 
     # create a grid world
     grid_world = Gw.GridWorld(height, width, good_pos, bad_pos, wall_pos)
-    grid_world.policy_iteration(1, -0.01, 100, 5)
+    grid_world.policy_iteration(gamma, rs, 1000, 4)
     state_values, policy = grid_world.values[1:height + 1, 1:width + 1], grid_world.policy
 
     for i in range(0, len(cells)):
@@ -60,68 +124,6 @@ def perform_alg():
     print(grid_world.count)
 
 
-pygame.init()
-
-
-world_w = 500
-world_h = 500
-cell_w = world_w/width
-cell_h = world_h/height
-
-font = pygame.font.Font("Arrows.ttf", int(min([cell_w, cell_h])))
-
-gameDisplay = pygame.display.set_mode((world_w, world_h + 125))
-pygame.display.set_caption('Grid world')
-clock = pygame.time.Clock()
-
-stopped = False
-
-active = [0, 0, 0]
-
-objects = []
-
-wall_check = cell.Spot(pygame.Rect(20, world_h + 10, 20, 20))
-good_check = cell.Spot(pygame.Rect(20, world_h + 40, 20, 20), (119, 219, 41))
-bad_check = cell.Spot(pygame.Rect(20, world_h + 70, 20, 20), (212, 58, 58))
-cells = []
-cell_color = (220,220,220)
-objects.append(wall_check)
-objects.append(good_check)
-objects.append(bad_check)
-
-# create a bunch of cells of the grid world
-for row in range(0, height):
-    new_row = []
-    for col in range(0, width):
-        g_cell = cell.Spot(pygame.Rect(col * cell_w, row * cell_h, cell_w, cell_h), cell_color)
-        g_cell.filled = False
-        new_row.append(g_cell)
-
-    cells.append(new_row)
-
-
-def draw(canvas):
-    canvas.fill((255, 255, 255))
-    count = 0
-    for i in range(0, len(cells)):
-        for j in range(0, len(cells[i])):
-            current_cell = cells[i][j]
-
-            if current_cell.filled:
-                pygame.draw.rect(canvas, current_cell.color, current_cell.rect)
-            else:
-                pygame.draw.rect(canvas, cell_color, current_cell.rect, 1)
-
-            canvas.blit(current_cell.label, (current_cell.rect.left, current_cell.rect.top))
-            count += 1
-
-    for ob in range(0, len(objects)):
-        if objects[ob].filled and active[ob] == 1:
-            pygame.draw.rect(canvas, objects[ob].color, objects[ob].rect)
-        else:
-            pygame.draw.rect(canvas, objects[ob].color, objects[ob].rect, 1)
-
-
 def clear():
     for i in range(0, len(cells)):
         for j in range(0, len(cells[i])):
@@ -130,6 +132,30 @@ def clear():
             current_cell.color = cell_color
             current_cell.label = font.render("", 1, (0, 0, 0))
             current_cell.filled = False
+
+
+def check(act, rect_pos):
+    a = act
+
+    for o in range(0, len(objects)):
+        if objects[o].rect.contains(rect_pos):
+            a = [0, 0, 0]
+            a[o] = 1
+            objects[o].filled = True
+            return a
+    if 1 in act:
+        for i in range(0, len(cells)):
+            for j in range(0, len(cells[i])):
+                if cells[i][j].rect.contains(rect_pos):
+                    if d_pressed:
+                        cells[i][j].color = cell_color
+                        cells[i][j].filled = False
+                    else:
+                        cells[i][j].color = (objects[act.index(1)]).color
+                        cells[i][j].filled = True
+                    return a
+
+    return a
 
 while not stopped:
     draw(gameDisplay)
@@ -140,38 +166,30 @@ while not stopped:
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
-            rect_pos = (pos[0], pos[1], 1, 1)
+            r_pos = (pos[0], pos[1], 1, 1)
+            drag = True
+            active = check(active, r_pos)
 
-            def check(act):
-                a = act
+        elif event.type == pygame.MOUSEBUTTONUP:
+            drag = False
 
-                for o in range(0, len(objects)):
-                    if objects[o].rect.contains(rect_pos):
-                        a = [0, 0, 0]
-                        a[o] = 1
-                        objects[o].filled = True
-                        return a
-                if 1 in act:
-                    for i in range(0, len(cells)):
-                        for j in range(0, len(cells[i])):
-
-                            if cells[i][j].rect.contains(rect_pos):
-                                if event.button == 1:
-                                    cells[i][j].color = objects[act.index(1)].color
-                                    cells[i][j].filled = True
-                                elif event.button == 3:
-                                    cells[i][j].color = cell_color
-                                    cells[i][j].filled = False
-
-                                return a
-                return a
-            active = check(active)
+        elif event.type == pygame.MOUSEMOTION:
+            if drag:
+                pos = event.pos
+                r_pos = (pos[0], pos[1], 1, 1)
+                active = check(active, r_pos)
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 perform_alg()
             elif event.key == pygame.K_c:
                 clear()
+            elif event.key == pygame.K_d:
+                d_pressed = True
+
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_d:
+                d_pressed = False
 
     pygame.display.update()
     clock.tick(60)
