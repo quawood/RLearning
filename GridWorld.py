@@ -164,6 +164,7 @@ class GridWorld:
         # choose positions for good and bad rewards
         for g in range(0, len(self.good_p)):
             max_values[self.good_p[g][0], self.good_p[g][1]] = 1
+
         for g in range(0, len(self.bad_p)):
             max_values[self.bad_p[g][0], self.bad_p[g][1]] = -1
 

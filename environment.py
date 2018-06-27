@@ -4,6 +4,10 @@ import cell
 
 
 # value iteration
+width = 15
+height = 15
+
+
 def perform_alg():
     wall_pos = []
     good_pos = []
@@ -19,7 +23,7 @@ def perform_alg():
                 bad_pos.append((i, j))
 
     # create a grid world
-    grid_world = Gw.GridWorld(3, 4, good_pos, bad_pos, wall_pos)
+    grid_world = Gw.GridWorld(height, width, good_pos, bad_pos, wall_pos)
     grid_world.policy_iteration(1, -0.01, 100, 5)
     state_values, policy = grid_world.values[1:height + 1, 1:width + 1], grid_world.policy
 
@@ -56,14 +60,13 @@ def perform_alg():
 
 pygame.init()
 
-font = pygame.font.Font("Arrows.ttf", 30)
-width = 4
-height = 3
 
 world_w = 400
-world_h = 300
+world_h = 400
 cell_w = world_w/width
 cell_h = world_h/height
+
+font = pygame.font.Font("Arrows.ttf", int(min([cell_w, cell_h])))
 
 gameDisplay = pygame.display.set_mode((world_w, world_h + 125))
 pygame.display.set_caption('Grid world')
@@ -75,11 +78,11 @@ active = [0, 0, 0]
 
 objects = []
 
-wall_check = cell.Spot(pygame.Rect(20, world_h + 10, 25, 25))
-good_check = cell.Spot(pygame.Rect(20, world_h + 45, 25, 25), (119, 219, 41))
-bad_check = cell.Spot(pygame.Rect(20, world_h + 80, 25, 25), (212, 58, 58))
+wall_check = cell.Spot(pygame.Rect(20, world_h + 10, 20, 20))
+good_check = cell.Spot(pygame.Rect(20, world_h + 40, 20, 20), (119, 219, 41))
+bad_check = cell.Spot(pygame.Rect(20, world_h + 70, 20, 20), (212, 58, 58))
 cells = []
-
+cell_color = (220,220,220)
 objects.append(wall_check)
 objects.append(good_check)
 objects.append(bad_check)
@@ -88,7 +91,7 @@ objects.append(bad_check)
 for row in range(0, height):
     new_row = []
     for col in range(0, width):
-        g_cell = cell.Spot(pygame.Rect(col * cell_w, row * cell_h, cell_w, cell_h), (15, 100, 90))
+        g_cell = cell.Spot(pygame.Rect(col * cell_w, row * cell_h, cell_w, cell_h), cell_color)
         g_cell.filled = False
         new_row.append(g_cell)
 
@@ -106,16 +109,16 @@ def draw(canvas, act, objs, clls):
             if current_cell.filled:
                 pygame.draw.rect(canvas, current_cell.color, current_cell.rect)
             else:
-                pygame.draw.rect(canvas, (15, 100, 90), current_cell.rect, 1)
+                pygame.draw.rect(canvas, cell_color, current_cell.rect, 1)
 
-            canvas.blit(current_cell.label, current_cell.rect.center)
+            canvas.blit(current_cell.label, (current_cell.rect.left, current_cell.rect.top))
             count += 1
 
     for ob in range(0, len(objs)):
         if objs[ob].filled and a[ob] == 1:
             pygame.draw.rect(canvas, objs[ob].color, objs[ob].rect)
         else:
-            pygame.draw.rect(canvas, objs[ob].color, objs[ob].rect, 2)
+            pygame.draw.rect(canvas, objs[ob].color, objs[ob].rect, 1)
 
 
 while not stopped:
@@ -147,7 +150,7 @@ while not stopped:
                                     cells[i][j].color = objects[act.index(1)].color
                                     cells[i][j].filled = True
                                 elif event.button == 3:
-                                    cells[i][j].color = (15, 100, 90)
+                                    cells[i][j].color = cell_color
                                     cells[i][j].filled = False
 
                                 return a
