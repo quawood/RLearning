@@ -5,26 +5,29 @@ import MDP_helper as Helper
 
 class GridWorld:
 
-    def __init__(self, height: int, width: int, good_n: int, bad_n: int, wall_n: int):
+    def __init__(self, height: int, width: int, good_n, bad_n, wall_n):
         self.width = width
         self.height = height
         self.wall_n = wall_n
 
-        self.good_p = []
-        self.bad_p = []
-        self.wall_p = []
+        self.good_p = good_n
+        self.bad_p = bad_n
+        self.wall_p = wall_n
         self.actions = Helper.def_actions()
 
         self.values = np.zeros((height + 2, width + 2))
         self.prev_values = np.zeros((height + 2, width + 2))
         self.policy = np.zeros((height, width))
 
-        for pg in range(0, good_n):
-            self.good_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
-        for pb in range(0, bad_n):
-            self.bad_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
-        for pw in range(0, wall_n):
-            self.wall_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
+        if isinstance(good_n, int):
+            for pg in range(0, good_n):
+                self.good_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
+        if isinstance(bad_n, int):
+            for pb in range(0, bad_n):
+                self.bad_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
+        if isinstance(wall_n, int):
+            for pw in range(0, wall_n):
+                self.wall_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
 
     def is_exit(self, i1: int, i2: int) -> bool:
         sink = False
@@ -142,7 +145,7 @@ class GridWorld:
             # only add the values associated with the action that provide the greatest values
             greater = a_values >= max_values
             max_values[greater] = a_values[greater]
-            optimal_policy[greater] = (a)
+            optimal_policy[greater] = a
 
         return optimal_policy
 
@@ -164,7 +167,7 @@ class GridWorld:
         for g in range(0, len(self.bad_p)):
             max_values[self.bad_p[g][0], self.bad_p[g][1]] = -1
 
-            # re-pad the values array
+        # pad the values array
 
         padded_values = np.zeros((self.height + 2, self.width + 2))
         padded_values[1:self.height + 1, 1:self.width + 1] = max_values
