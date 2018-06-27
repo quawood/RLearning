@@ -6,8 +6,9 @@ import cell
 # value iteration
 width = 50
 height = 50
-gamma = 1
+gamma = 0.1
 rs = -0.01
+value_tests = 4
 
 pygame.init()
 
@@ -95,7 +96,7 @@ def perform_alg(grid=None):
         grid_world.values = grid.values
         grid_world.policy = grid.policy
 
-    grid_world.policy_iteration(gamma, rs, 1000, 4)
+    grid_world.policy_iteration(gamma, rs, 1000, value_tests)
     state_values, policy = grid_world.values[1:height + 1, 1:width + 1], grid_world.policy
 
     for i in range(0, len(cells)):
@@ -192,12 +193,14 @@ while not stopped:
                 if runs == 0:
                     grid_w = perform_alg()
                 else:
+                    value_tests = 1
                     grid_w = perform_alg(grid_w)
 
                 runs += 1
             elif event.key == pygame.K_c:
                 clear()
                 grid_w = None
+                value_tests = 4
             elif event.key == pygame.K_d:
                 d_pressed = True
 
