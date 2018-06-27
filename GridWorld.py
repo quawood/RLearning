@@ -19,6 +19,7 @@ class GridWorld:
         self.prev_values = np.zeros((height + 2, width + 2))
         self.policy = np.zeros((height, width))
 
+        self.count = 0
         if isinstance(good_n, int):
             for pg in range(0, good_n):
                 self.good_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
@@ -113,6 +114,7 @@ class GridWorld:
                 count += 1
 
         self.policy = p
+        self.count = count
 
     def policy_iteration(self, gamma, rs, max_iter, value_test):
         iterating = True
@@ -133,6 +135,8 @@ class GridWorld:
             count += 1
 
         self.policy = p
+        self.count = count*value_test
+
 
     def extract_policy(self, gamma, rs):
         ex_values = gamma * self.prev_values + rs

@@ -4,8 +4,8 @@ import cell
 
 
 # value iteration
-width = 15
-height = 15
+width = 10
+height = 10
 
 
 def perform_alg():
@@ -57,12 +57,14 @@ def perform_alg():
 
             cells[i][j].label = font.render(char_to_add, 1, (0, 0, 0))
 
+    print(grid_world.count)
+
 
 pygame.init()
 
 
-world_w = 400
-world_h = 400
+world_w = 500
+world_h = 500
 cell_w = world_w/width
 cell_h = world_h/height
 
@@ -98,13 +100,12 @@ for row in range(0, height):
     cells.append(new_row)
 
 
-def draw(canvas, act, objs, clls):
-    a = act
+def draw(canvas):
     canvas.fill((255, 255, 255))
     count = 0
-    for i in range(0, len(clls)):
-        for j in range(0, len(clls[i])):
-            current_cell = clls[i][j]
+    for i in range(0, len(cells)):
+        for j in range(0, len(cells[i])):
+            current_cell = cells[i][j]
 
             if current_cell.filled:
                 pygame.draw.rect(canvas, current_cell.color, current_cell.rect)
@@ -114,15 +115,24 @@ def draw(canvas, act, objs, clls):
             canvas.blit(current_cell.label, (current_cell.rect.left, current_cell.rect.top))
             count += 1
 
-    for ob in range(0, len(objs)):
-        if objs[ob].filled and a[ob] == 1:
-            pygame.draw.rect(canvas, objs[ob].color, objs[ob].rect)
+    for ob in range(0, len(objects)):
+        if objects[ob].filled and active[ob] == 1:
+            pygame.draw.rect(canvas, objects[ob].color, objects[ob].rect)
         else:
-            pygame.draw.rect(canvas, objs[ob].color, objs[ob].rect, 1)
+            pygame.draw.rect(canvas, objects[ob].color, objects[ob].rect, 1)
 
+
+def clear():
+    for i in range(0, len(cells)):
+        for j in range(0, len(cells[i])):
+            current_cell = cells[i][j]
+
+            current_cell.color = cell_color
+            current_cell.label = font.render("", 1, (0, 0, 0))
+            current_cell.filled = False
 
 while not stopped:
-    draw(gameDisplay, active, objects, cells)
+    draw(gameDisplay)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -160,6 +170,8 @@ while not stopped:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 perform_alg()
+            elif event.key == pygame.K_c:
+                clear()
 
     pygame.display.update()
     clock.tick(60)
