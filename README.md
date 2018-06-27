@@ -17,3 +17,8 @@ Having calculated these values for each cell, the actions that produced these va
 Issues/next steps:
 * improve upon policy decision algorithm by avoiding updating policy at every update of cell values
 * actual reinforcement learning in grid world
+
+
+Currently, there is a crude version of a virtual environmet where positions walls, rewards, and penalties can be modified easily.
+![alt text](https://github.com/quawood/RLearning/blob/master/images/current1.png)
+![alt text](https://github.com/quawood/RLearning/blob/master/images/current2.png)
