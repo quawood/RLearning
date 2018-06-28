@@ -1,7 +1,7 @@
 import pygame
 
 
-class Spot:
+class Cell:
 
     def __init__(self, rect, color=(0, 0, 0)):
 
