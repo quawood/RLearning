@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import MDP_helper as Helper
-
+from numpy.random import choice
 
 class GridWorld:
 
@@ -17,7 +17,11 @@ class GridWorld:
 
         self.values = np.zeros((height + 2, width + 2))
         self.prev_values = np.zeros((height + 2, width + 2))
+
+        self.qvalues = np.zeros((len(self.actions), height + 2, width + 2))
+
         self.policy = np.zeros((height, width))
+
 
         self.count = 0
         if isinstance(good_n, int):
@@ -136,6 +140,30 @@ class GridWorld:
 
         self.policy = p
         self.count = count*value_test
+
+    def qvalue_iteration(self, gamma, rs, epsilon, max_iteration):
+        current_state = (1, 1)
+        for count in range(0, max_iteration):
+
+            rand = random.uniform(0,1)
+
+            if rand < epsilon:
+                a = random.randint(0, len(self.actions-1))
+            else:
+                a = np.argmax(self.q_values[:, current_state[0], current_state[1]])
+
+            choice(np., 1, p=self.actions)
+            self.ac
+
+    def update_qvalue(self, sample, gamma, alpha):
+
+        i, j = sample[0]
+        a = sample[1]
+        r = sample[2]
+        new_state = sample[3]
+
+        difference = r + gamma * np.amax(self.qvalues[:, new_state[0], new_state[0]])
+        self.qvalues[a, i, j] = (1 - alpha) * self.qvalues[a, i, j] + alpha * difference
 
     def extract_policy(self, gamma, rs):
         ex_values = gamma * self.prev_values + rs

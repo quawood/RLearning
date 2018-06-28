@@ -152,6 +152,7 @@ def check(act, rect_pos):
             a[o] = 1
             objects[o].filled = True
             return a
+
     if 1 in act:
         for i in range(0, len(cells)):
             for j in range(0, len(cells[i])):
