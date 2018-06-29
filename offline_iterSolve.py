@@ -32,9 +32,7 @@ def perform_alg(grid=None):
             char_to_add = ""
             if game.grid_world.is_wall((i + 1, j + 1)):
                 char_to_add = ""
-            elif state_values[i, j] == 1 and game.grid_world.is_exit((i, j)):
-                char_to_add = ""
-            elif state_values[i, j] == -1 and game.grid_world.is_exit((i, j)):
+            elif game.grid_world.is_exit((i, j)):
                 char_to_add = ""
             elif direct == 0:
                 char_to_add = "C"
@@ -64,7 +62,7 @@ while not game.stopped:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            stopped = True
+            game.stopped = True
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()

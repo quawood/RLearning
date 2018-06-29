@@ -142,20 +142,6 @@ class GridWorld:
         self.policy = p
         self.count = count*value_test
 
-    ''' def qvalue_iteration(self, gamma, rs, epsilon, max_iteration):
-         current_state = (1, 1)
-         for count in range(0, max_iteration):
-
-             rand = random.uniform(0,1)
-
-             if rand < epsilon:
-                 a = random.randint(0, len(self.actions-1))
-             else:
-                 a = np.argmax(self.q_values[:, current_state[0], current_state[1]])
-
-             choice(np., 1, p=self.actions)
-             self.ac
-    '''
 
     def update_qvalue(self, sample, gamma, alpha, to_exit=False):
 
