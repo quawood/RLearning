@@ -214,3 +214,14 @@ class GridWorld:
         padded_values = np.zeros((self.height + 2, self.width + 2))
         padded_values[1:self.height + 1, 1:self.width + 1] = max_values
         self.values = padded_values
+
+    def rand_pos(self):
+        rand_row, rand_col = None, None
+        found = False
+        while not found:
+            rand_row = random.randint(0, self.height - 1)
+            rand_col = random.randint(0, self.width - 1)
+            if not self.is_wall((rand_row + 1, rand_col + 1)):
+                found = True
+
+        return rand_row, rand_col

@@ -7,7 +7,7 @@ from game_environment.Agent import Agent
 class Game:
 
     def __init__(self, width, height):
-        self.world_h = 300
+        self.world_h = 400
         self.world_w = 400
         self.width = width
         self.height = height
@@ -127,10 +127,8 @@ class Game:
         self.grid_world = GridWorld(self.height, self.width, good_pos, bad_pos, wall_pos)
         self.agent = Agent(self.grid_world)
 
-
         if grid is not None:
             self.grid_world.values = grid.values
             self.grid_world.policy = grid.policy
             self.grid_world.qvalues = grid.qvalues
             self.agent = Agent(grid)
-

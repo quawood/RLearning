@@ -21,7 +21,7 @@ def draw(canvas):
 
 # policy iteration ----- offline MDP solving
 def perform_alg(grid=None):
-    game.new_grid(grid=None)
+    game.new_grid(grid)
 
     game.grid_world.policy_iteration(gamma, rs, 1000, value_tests)
     state_values, policy = game.grid_world.values[1:height + 1, 1:width + 1], game.grid_world.policy
@@ -87,7 +87,7 @@ while not game.stopped:
                     game.grid_world = perform_alg()
                 else:
                     value_tests = 1
-                    game.grid_world = perform_alg(game.grid_w)
+                    game.grid_world = perform_alg(game.grid_world)
 
                 game.runs += 1
             elif event.key == pygame.K_c:

@@ -6,7 +6,7 @@ class Agent:
 
     def __init__(self, grid: GridWorld):
         self.environment = grid
-        self.pos = (2, 3)
+        self.pos = grid.rand_pos()
 
     def move(self, action):
         valid_action = action.copy()
