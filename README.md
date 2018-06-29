@@ -20,6 +20,13 @@ Currently, there is a crude version of a virtual environmet where positions wall
 ![alt text](https://github.com/quawood/RLearning/blob/master/images/current1.png)
 ![alt text](https://github.com/quawood/RLearning/blob/master/images/current2.png)
 
+Use (online learning):
+* Upon running program, a pygame window will open.
+* select either black, green, or red squares and color cells with chosen color. Black corresponds to walls, green corresponds to reward of 1, and red corresponds to reward of -1
+* press enter to have agent run multiple episodes and learn Q-values
+* press s to see the current learned best policy. (can switch between learning and seeing policy)
+* press c to clear layout
+
 Issues/next steps:
 * add sliders for gamma value, living reward, and dimensions of environment
 * actual reinforcement learning in grid world
