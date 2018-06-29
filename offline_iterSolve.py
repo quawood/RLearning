@@ -1,5 +1,4 @@
 import pygame
-from core import GridWorld as Gw
 from game_environment.Game import Game
 
 # value iteration
@@ -12,7 +11,6 @@ value_tests = 4
 # set up game
 game = Game(width, height)
 game.start()
-
 
 
 def draw(canvas):
@@ -32,12 +30,11 @@ def perform_alg(grid=None):
         for j in range(0, len(game.cells[i])):
             direct = policy[i, j]
             char_to_add = ""
-            print()
-            if game.grid_world.is_wall(i + 1, j + 1):
+            if game.grid_world.is_wall((i + 1, j + 1)):
                 char_to_add = ""
-            elif state_values[i, j] == 1 and game.grid_world.is_exit(i, j):
+            elif state_values[i, j] == 1 and game.grid_world.is_exit((i, j)):
                 char_to_add = ""
-            elif state_values[i, j] == -1 and game.grid_world.is_exit(i, j):
+            elif state_values[i, j] == -1 and game.grid_world.is_exit((i, j)):
                 char_to_add = ""
             elif direct == 0:
                 char_to_add = "C"

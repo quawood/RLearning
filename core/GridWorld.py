@@ -20,7 +20,7 @@ class GridWorld:
         self.values = np.zeros((height + 2, width + 2))
         self.prev_values = np.zeros((height + 2, width + 2))
 
-        self.qvalues = np.zeros((len(self.actions), height + 2, width + 2))
+        self.qvalues = np.zeros((len(self.actions), height, width))
 
         self.policy = np.zeros((height, width))
 
@@ -35,24 +35,24 @@ class GridWorld:
             for pw in range(0, wall_n):
                 self.wall_p.append((random.randint(0, height - 1), random.randint(0, width - 1)))
 
-    def is_exit(self, i1: int, i2: int) -> bool:
+    def is_exit(self, pos: (int, int)) -> bool:
         sink = False
         states = self.good_p + self.bad_p
         for s in range(0, len(states)):
-            if (i1, i2) == states[s]:
+            if pos == states[s]:
                 sink = True
 
         return sink
 
-    def is_wall(self, i1: int, i2: int) -> bool:
+    def is_wall(self, pos: (int, int)) -> bool:
         wall = False
         for pw in range(0, len(self.wall_p)):
-            if (i1, i2) == (self.wall_p[pw][0] + 1, self.wall_p[pw][1] + 1):
+            if pos == (self.wall_p[pw][0] + 1, self.wall_p[pw][1] + 1):
                 wall = True
                 break
 
         if not wall:
-            if i1 == 0 or i1 == self.height + 1 or i2 == 0 or i2 == self.width + 1:
+            if pos[0] == 0 or pos[0] == self.height + 1 or pos[1] == 0 or pos[1] == self.width + 1:
                 wall = True
 
         return wall
@@ -86,12 +86,12 @@ class GridWorld:
 
                 center = (int((n - 1) / 2), int((n - 1) / 2))
                 # check if action is about to be performed to a wall or in exit state and change the action accordingly
-                if self.is_exit(row + center[0], row + center[1]):
+                if self.is_exit((row + center[0], row + center[1])):
                     temp_g = np.zeros((n, n))
                 else:
                     for r in range(row, row + n):
                         for c in range(col, col + n):
-                            if self.is_wall(r, c):
+                            if self.is_wall((r, c)):
                                 temp_g[center] += temp_g[r - row, c - col]
                                 temp_g[r - row, c - col] = 0
 
@@ -157,14 +157,19 @@ class GridWorld:
              self.ac
     '''
 
-    def update_qvalue(self, sample, gamma, alpha):
+    def update_qvalue(self, sample, gamma, alpha, to_exit=False):
 
         i, j = sample[0]
-        a = sample[1]
         r = sample[2]
-        new_state = sample[3]
-        difference = r + gamma * np.amax(self.qvalues[:, new_state[0], new_state[1]])
-        self.qvalues[a, i, j] = (1 - alpha) * self.qvalues[a, i, j] + alpha * difference
+
+        if not to_exit:
+            a = sample[1]
+            new_state = sample[3]
+            difference = r + gamma * np.amax(self.qvalues[:, new_state[0], new_state[1]])
+            self.qvalues[a, i, j] = (1 - alpha) * self.qvalues[a, i, j] + alpha * difference
+        else:
+            difference = r
+            self.qvalues[:, i, j] = (1 - alpha) * self.qvalues[:, i, j] + alpha * difference
 
     def extract_policy(self, gamma, rs):
         ex_values = gamma * self.prev_values + rs
@@ -179,6 +184,10 @@ class GridWorld:
             max_values[greater] = a_values[greater]
             optimal_policy[greater] = a
 
+        return optimal_policy
+
+    def q_extract_policy(self):
+        optimal_policy = np.argmax(self.qvalues, axis=0)
         return optimal_policy
 
     def update_values(self, actions, gamma, rs):
