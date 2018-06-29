@@ -17,8 +17,8 @@ Having calculated these values for each cell, the actions that produced these va
 
 Currently, there is a crude version of a virtual environmet where positions walls, rewards, and penalties can be modified easily.
 
-![alt text](https://github.com/quawood/RLearning/blob/master/images/current1.png)
-![alt text](https://github.com/quawood/RLearning/blob/master/images/current2.png)
+![alt text](https://github.com/quawood/RLearning/blob/master/assets/current1.png)
+![alt text](https://github.com/quawood/RLearning/blob/master/assets/current2.png)
 
 Use (online learning):
 * Upon running program, a pygame window will open.
