@@ -20,7 +20,7 @@ class GridWorld:
         self.values = np.zeros((height + 2, width + 2))
         self.prev_values = np.zeros((height + 2, width + 2))
 
-        # self.qvalues = np.zeros((len(self.actions), height + 2, width + 2))
+        self.qvalues = np.zeros((len(self.actions), height + 2, width + 2))
 
         self.policy = np.zeros((height, width))
 
@@ -155,6 +155,7 @@ class GridWorld:
 
              choice(np., 1, p=self.actions)
              self.ac
+    '''
 
     def update_qvalue(self, sample, gamma, alpha):
 
@@ -162,10 +163,8 @@ class GridWorld:
         a = sample[1]
         r = sample[2]
         new_state = sample[3]
-
-        difference = r + gamma * np.amax(self.qvalues[:, new_state[0], new_state[0]])
+        difference = r + gamma * np.amax(self.qvalues[:, new_state[0], new_state[1]])
         self.qvalues[a, i, j] = (1 - alpha) * self.qvalues[a, i, j] + alpha * difference
-    '''
 
     def extract_policy(self, gamma, rs):
         ex_values = gamma * self.prev_values + rs

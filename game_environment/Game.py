@@ -1,13 +1,13 @@
 import pygame
-
+from core.GridWorld import GridWorld
 from game_environment.cell import Cell
-
+from game_environment.Agent import Agent
 
 class Game:
 
     def __init__(self, width, height):
-        self.world_h = 500
-        self.world_w = 500
+        self.world_h = 400
+        self.world_w = 300
         self.width = width
         self.height = height
 
@@ -23,26 +23,27 @@ class Game:
         self.active = [0, 0, 0]
 
         self.gameDisplay = pygame.display.set_mode((self.world_w, self.world_h + 125))
+        self.agent = None
+        self.grid_world = None
 
         self.runs = 0
 
-        self.pygame = pygame
-        self.pygame.init()
+        pygame.init()
 
-        self.font = self.pygame.font.SysFont("monospace", 5)
-        self.clock = self.pygame.time.Clock()
+        self.font = pygame.font.SysFont("monospace", 5)
+        self.clock = pygame.time.Clock()
 
     def start(self):
 
         cell_w = self.world_w / self.width
         cell_h = self.world_h / self.height
 
-        self.font = self.pygame.font.Font("assets/Arrows.ttf", int(min([cell_w, cell_h])))
-        self.pygame.display.set_caption('Grid world')
+        self.font = pygame.font.Font("assets/Arrows.ttf", int(min([cell_w, cell_h])))
+        pygame.display.set_caption('Grid world')
 
-        wall_check = Cell(self.pygame.Rect(20, self.world_h + 10, 20, 20))
-        good_check = Cell(self.pygame.Rect(20, self.world_h + 40, 20, 20), (119, 219, 41))
-        bad_check = Cell(self.pygame.Rect(20, self.world_h + 70, 20, 20), (212, 58, 58))
+        wall_check = Cell(pygame.Rect(20, self.world_h + 10, 20, 20))
+        good_check = Cell(pygame.Rect(20, self.world_h + 40, 20, 20), (119, 219, 41))
+        bad_check = Cell(pygame.Rect(20, self.world_h + 70, 20, 20), (212, 58, 58))
 
         self.objects.append(wall_check)
         self.objects.append(good_check)
@@ -51,7 +52,7 @@ class Game:
         for row in range(0, self.height):
             new_row = []
             for col in range(0, self.width):
-                g_cell = Cell(self.pygame.Rect(col * cell_w, row * cell_h, cell_w, cell_h), self.cell_color)
+                g_cell = Cell(pygame.Rect(col * cell_w, row * cell_h, cell_w, cell_h), self.cell_color)
                 g_cell.filled = False
                 new_row.append(g_cell)
 
@@ -63,11 +64,17 @@ class Game:
                 current_cell = self.cells[i][j]
 
                 if current_cell.filled:
-                    self.pygame.draw.rect(canvas, current_cell.color, current_cell.rect)
+                    pygame.draw.rect(canvas, current_cell.color, current_cell.rect)
                 else:
-                    self.pygame.draw.rect(canvas, self.cell_color, current_cell.rect, 1)
+                    pygame.draw.rect(canvas, self.cell_color, current_cell.rect, 1)
 
                 canvas.blit(current_cell.label, (current_cell.rect.left, current_cell.rect.top))
+
+        for ob in range(0, len(self.objects)):
+            if self.objects[ob].filled and self.active[ob] == 1:
+                pygame.draw.rect(canvas, self.objects[ob].color, self.objects[ob].rect)
+            else:
+                pygame.draw.rect(canvas, self.objects[ob].color, self.objects[ob].rect, 1)
 
     def clear(self):
         for i in range(0, len(self.cells)):
@@ -100,3 +107,28 @@ class Game:
                         return
 
         self.active = a
+
+    def new_grid(self, grid=None):
+        wall_pos = []
+        good_pos = []
+        bad_pos = []
+
+        for i in range(0, len(self.cells)):
+            for j in range(0, len(self.cells[i])):
+                if self.cells[i][j].color == (0, 0, 0):
+                    wall_pos.append((i, j))
+                elif self.cells[i][j].color == (119, 219, 41):
+                    good_pos.append((i, j))
+                elif self.cells[i][j].color == (212, 58, 58):
+                    bad_pos.append((i, j))
+
+        # create a grid world
+        self.grid_world = GridWorld(self.height, self.width, good_pos, bad_pos, wall_pos)
+        self.agent = Agent(self.grid_world)
+
+        if grid is not None:
+            self.grid_world.values = grid.values
+            self.grid_world.policy = grid.policy
+            self.agent = grid.agent
+
+
