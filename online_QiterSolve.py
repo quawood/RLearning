@@ -4,8 +4,8 @@ import numpy as np
 from game_environment.Game import Game
 
 # value iteration
-width = 10
-height = 10
+width = 5
+height = 5
 
 # set up game
 game = Game(width, height)
@@ -64,7 +64,7 @@ def explore(epsilon, alpha, gamma, r):
 # update game
 def learn():
     alpha_creep = 0.0 * (int(game.runs) // int(1000))
-    explore(0.2 - alpha_creep, 0.1, 0.9, -0.1)
+    explore(0.5 - alpha_creep, 0.1, 0.9, -0.1)
     game.runs += 1
 
 

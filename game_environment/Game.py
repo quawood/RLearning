@@ -131,4 +131,3 @@ class Game:
             self.grid_world.values = grid.values
             self.grid_world.policy = grid.policy
             self.grid_world.qvalues = grid.qvalues
-            self.agent = Agent(grid)

@@ -2,8 +2,8 @@ import pygame
 from game_environment.Game import Game
 
 # value iteration
-width = 10
-height = 10
+width = 5
+height = 5
 gamma = 1
 rs = -0.01
 value_tests = 4
