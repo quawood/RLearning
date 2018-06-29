@@ -91,6 +91,7 @@ while not game.stopped:
             elif event.key == pygame.K_c:
                 game.clear()
                 game.grid_world = None
+                game.runs = 0
                 value_tests = 4
             elif event.key == pygame.K_d:
                 game.d_pressed = True

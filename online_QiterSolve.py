@@ -132,7 +132,6 @@ while not game.stopped:
                 game.clear()
                 learning = False
                 game.grid_world = None
-                value_tests = 4
             elif event.key == pygame.K_d:
                 game.d_pressed = True
             elif event.key == pygame.K_s:
